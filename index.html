@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fluent3k</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="site-header">
+    <nav class="nav" aria-label="Hauptnavigation">
+      <a href="#dashboard" data-page="dashboard">Dashboard</a>
+      <a href="#learn" data-page="learn">Lernen</a>
+      <a href="#library" data-page="library">Wort-Matrix</a>
+      <a href="#settings" data-page="settings">Profil</a>
+    </nav>
+  </header>
+
+  <main>
+
+    <!-- Dashboard -->
+    <section class="page" id="page-dashboard" hidden>
+      <h1>Fluent3k</h1>
+      <p class="muted" id="dash-lang"></p>
+
+      <div class="stat-grid">
+        <div class="stat">
+          <span class="stat-value" id="stat-mastered">0</span>
+          <span class="stat-label">von 3000 Wörtern gemeistert</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value" id="stat-learning">0</span>
+          <span class="stat-label">Wörter am Lernen</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value" id="stat-due">0</span>
+          <span class="stat-label">Karten fällig</span>
+        </div>
+      </div>
+
+      <h2>Gesamtfortschritt</h2>
+      <div class="bar"><div class="bar-fill" id="bar-total"></div></div>
+      <p class="muted small" id="bar-total-label"></p>
+
+      <h2>Wortschatz-Auszug</h2>
+      <div class="bar"><div class="bar-fill" id="bar-sample"></div></div>
+      <p class="muted small" id="bar-sample-label"></p>
+
+      <div class="actions">
+        <button class="btn btn-primary" type="button" data-go="learn">Jetzt lernen</button>
+      </div>
+    </section>
+
+    <!-- Lernen -->
+    <section class="page" id="page-learn" hidden>
+      <h1>Lernen</h1>
+      <p class="muted" id="learn-meta"></p>
+
+      <div class="modes" id="modes" role="group" aria-label="Übung wählen">
+        <button type="button" class="mode" data-mode="cards">
+          <strong>Karteikarten</strong><span>Erinnern und selbst bewerten</span>
+        </button>
+        <button type="button" class="mode" data-mode="type">
+          <strong>Eintippen</strong><span>Übersetzung aus dem Kopf schreiben</span>
+        </button>
+        <button type="button" class="mode" data-mode="cloze">
+          <strong>Lückentext</strong><span>Fehlendes Wort im Satz ergänzen</span>
+        </button>
+      </div>
+      <p class="muted small" id="mode-desc"></p>
+
+      <div id="learn-area">
+
+        <!-- Übung 1: Karteikarten -->
+        <div id="ex-cards">
+          <div class="card" id="card" tabindex="0" role="button" aria-label="Karte umdrehen" aria-pressed="false">
+            <div class="card-inner">
+              <div class="card-face card-front">
+                <span class="tag">Vorderseite</span>
+                <div class="card-word" id="card-word"></div>
+                <p class="card-example" id="card-example"></p>
+                <span class="hint">Klicken zum Umdrehen</span>
+              </div>
+              <div class="card-face card-back">
+                <span class="tag">Rückseite</span>
+                <div class="card-word" id="card-trans"></div>
+                <p class="card-example" id="card-ctx"></p>
+                <p class="card-pron" id="card-pron"></p>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-tools">
+            <button class="btn btn-small" type="button" id="btn-speak">Anhören</button>
+            <span class="muted small">Leertaste: umdrehen · Tasten 1–4: bewerten</span>
+          </div>
+
+          <div class="rate" id="rate">
+            <button class="btn" type="button" data-rate="again" disabled>Nochmal</button>
+            <button class="btn" type="button" data-rate="hard" disabled>Schwer</button>
+            <button class="btn" type="button" data-rate="good" disabled>Gut</button>
+            <button class="btn" type="button" data-rate="easy" disabled>Einfach</button>
+          </div>
+        </div>
+
+        <!-- Vorstellung neuer Wörter (für Eintippen und Lückentext) -->
+        <div id="ex-intro" hidden>
+          <div class="prompt-box">
+            <span class="tag">Neues Wort</span>
+            <div class="prompt-main" id="i-word"></div>
+            <p class="prompt-sub" id="i-trans"></p>
+            <p class="prompt-sub" id="i-example"></p>
+            <p class="card-pron" id="i-pron"></p>
+          </div>
+          <div class="card-tools">
+            <button class="btn btn-small" type="button" id="i-speak">Anhören</button>
+            <button class="btn btn-primary" type="button" id="i-ok">Verstanden – abfragen</button>
+          </div>
+        </div>
+
+        <!-- Übung 2 und 3: Eintippen und Lückentext -->
+        <div id="ex-write" hidden>
+          <div class="prompt-box">
+            <span class="tag" id="w-tag"></span>
+            <div class="prompt-main" id="w-main"></div>
+            <p class="prompt-sub" id="w-sub"></p>
+            <p class="prompt-sub small" id="w-hint"></p>
+          </div>
+
+          <form id="w-form" autocomplete="off">
+            <div class="answer-row">
+              <input type="text" id="w-input" placeholder="Antwort eintippen …" aria-label="Antwort"
+                     autocapitalize="off" autocorrect="off" spellcheck="false">
+              <button class="btn btn-primary" type="submit" id="w-submit">Prüfen</button>
+            </div>
+          </form>
+
+          <div class="feedback" id="w-feedback" hidden>
+            <p class="feedback-title" id="w-result"></p>
+            <p id="w-answer"></p>
+            <p class="muted small" id="w-note"></p>
+            <p class="muted" id="w-full"></p>
+          </div>
+
+          <div class="card-tools">
+            <button class="btn btn-small" type="button" id="w-giveup">Weiß ich nicht</button>
+            <button class="btn btn-small" type="button" id="w-speak" disabled>Anhören</button>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="empty" id="learn-done" hidden>
+        <p class="empty-title">Für den Moment ist alles wiederholt.</p>
+        <p class="muted">Neue Karten erscheinen, sobald Wiederholungen fällig sind.</p>
+        <div class="actions">
+          <button class="btn btn-primary" type="button" id="btn-more">Trotzdem weiter üben</button>
+          <button class="btn" type="button" data-go="dashboard">Zum Dashboard</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Wort-Matrix -->
+    <section class="page" id="page-library" hidden>
+      <h1>Wort-Matrix</h1>
+      <p class="muted">Alle Kernwörter der gewählten Sprache.</p>
+
+      <div class="toolbar">
+        <input type="search" id="lib-search" placeholder="Suchen …" aria-label="Wörter suchen" autocomplete="off">
+        <div class="filters" id="lib-filters">
+          <button type="button" data-filter="all" class="active">Alle</button>
+          <button type="button" data-filter="new">Neu</button>
+          <button type="button" data-filter="learning">Am Lernen</button>
+          <button type="button" data-filter="mastered">Gemeistert</button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Wort</th>
+              <th>Übersetzung</th>
+              <th>Status</th>
+              <th>Fällig</th>
+            </tr>
+          </thead>
+          <tbody id="lib-body"></tbody>
+        </table>
+      </div>
+      <p class="muted small" id="lib-count"></p>
+    </section>
+
+    <!-- Profil / Einstellungen -->
+    <section class="page" id="page-settings" hidden>
+      <h1>Profil</h1>
+      <p class="muted small save-status" id="save-status" aria-live="polite">Änderungen werden automatisch gespeichert.</p>
+
+      <h2>Lernen</h2>
+      <div class="setting">
+        <label for="set-lang">Lernsprache</label>
+        <select id="set-lang">
+          <option value="es">Spanisch</option>
+          <option value="en">Englisch</option>
+          <option value="fr">Französisch</option>
+          <option value="sv">Schwedisch</option>
+        </select>
+      </div>
+
+      <h2>Audio</h2>
+      <div class="setting">
+        <label for="set-audio">Audio aktivieren</label>
+        <input type="checkbox" id="set-audio">
+      </div>
+      <div class="setting">
+        <label for="set-autoplay">Automatisch abspielen</label>
+        <input type="checkbox" id="set-autoplay">
+      </div>
+      <div class="setting">
+        <label for="set-rate">Sprechtempo <span id="set-rate-val"></span></label>
+        <input type="range" id="set-rate" min="0.5" max="1.5" step="0.1">
+      </div>
+
+      <h2>Zurücksetzen</h2>
+      <div class="setting">
+        <label>Gesamten Lernfortschritt löschen</label>
+        <button class="btn btn-small" type="button" id="btn-reset">Zurücksetzen</button>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
