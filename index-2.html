@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Fluent3k</title>
+  <meta name="theme-color" content="#000000">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="#dashboard">Fluent3k</a>
+      <nav class="nav" aria-label="Hauptnavigation">
+        <a href="#dashboard" data-route="dashboard">Dashboard</a>
+        <a href="#study" data-route="study">Lernen</a>
+        <a href="#library" data-route="library">Wort-Matrix</a>
+        <a href="#onboarding" data-route="onboarding">Profil</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="shell">
+
+    <!-- 1. Onboarding / Profil -->
+    <section class="view" id="view-onboarding" hidden>
+      <h1 tabindex="-1">Dein Lernprofil</h1>
+      <p class="lead">3.000 Kernwörter, die einen Großteil der Alltagskommunikation abdecken. Lege fest, welche Sprache du lernst und welches Niveau du erreichen willst.</p>
+
+      <form id="profileForm" novalidate>
+        <fieldset class="group">
+          <legend>Sprachen</legend>
+          <div class="field-row">
+            <div class="field">
+              <label for="selNative">Meine Muttersprache</label>
+              <select id="selNative"></select>
+            </div>
+            <button type="button" class="btn btn-ghost swap" id="swapLang" aria-label="Sprachen tauschen">Tauschen</button>
+            <div class="field">
+              <label for="selTarget">Zielsprache</label>
+              <select id="selTarget"></select>
+            </div>
+          </div>
+          <p class="error" id="pairError" role="alert" hidden>Muttersprache und Zielsprache müssen sich unterscheiden.</p>
+        </fieldset>
+
+        <fieldset class="group">
+          <legend>Ziel-Niveau</legend>
+          <div class="seg" id="levelSeg">
+            <label class="seg-item"><input type="radio" name="level" value="A1"><span class="seg-box"><b>A1</b><small>bis 600 Konzepte</small></span></label>
+            <label class="seg-item"><input type="radio" name="level" value="A2"><span class="seg-box"><b>A2</b><small>bis 1.400 Konzepte</small></span></label>
+            <label class="seg-item"><input type="radio" name="level" value="B1"><span class="seg-box"><b>B1</b><small>bis 2.200 Konzepte</small></span></label>
+            <label class="seg-item"><input type="radio" name="level" value="B2"><span class="seg-box"><b>B2</b><small>bis 3.000 Konzepte</small></span></label>
+          </div>
+        </fieldset>
+
+        <fieldset class="group">
+          <legend>Themen</legend>
+          <p class="hint">Karten zu diesen Themen kommen in der Session zuerst.</p>
+          <div class="chips" id="topicList"></div>
+        </fieldset>
+
+        <section class="group" aria-labelledby="pvTitle">
+          <h2 id="pvTitle">So entsteht deine Wortliste</h2>
+          <p class="hint">Jedes Konzept hat ein englisches Anchor-Wort. Aus dem Anchor-Wort und deinem Sprachpaar erzeugt das System Zielwort, Beispielsatz und Übersetzung.</p>
+          <div class="table-wrap">
+            <table class="mini-table">
+              <thead><tr><th scope="col" id="pvAnchor">Anchor (Englisch)</th><th scope="col" id="pvTarget">Zielsprache</th><th scope="col" id="pvNative">Muttersprache</th></tr></thead>
+              <tbody id="pvBody"></tbody>
+            </table>
+          </div>
+          <p class="notice" id="pvNote" hidden></p>
+        </section>
+
+        <div class="actions">
+          <button type="submit" class="btn btn-primary" id="saveProfile">Profil speichern</button>
+          <button type="button" class="btn btn-ghost" id="resetProgress">Lernstand zurücksetzen</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- 2. Dashboard -->
+    <section class="view" id="view-dashboard" hidden>
+      <h1 tabindex="-1">Dein Fortschritt</h1>
+      <p class="lead" id="dashPair"></p>
+
+      <p class="hero-count"><span id="dashMastered">150</span><span class="of"> / 3.000</span></p>
+      <p class="hero-label">Konzepte gemeistert</p>
+
+      <div class="meter" id="dashMeter" role="progressbar" aria-label="Gemeisterte Konzepte" aria-valuemin="0" aria-valuemax="3000" aria-valuenow="150">
+        <div class="fill" id="dashFill"></div>
+        <i class="tick" style="left:20%"></i><i class="tick" style="left:46.667%"></i><i class="tick" style="left:73.333%"></i>
+      </div>
+      <div class="levels" aria-hidden="true">
+        <span style="flex:600"><b>A1</b><small>bis 600</small></span>
+        <span style="flex:800"><b>A2</b><small>bis 1.400</small></span>
+        <span style="flex:800"><b>B1</b><small>bis 2.200</small></span>
+        <span style="flex:800"><b>B2</b><small>bis 3.000</small></span>
+      </div>
+
+      <p class="level-line">Aktuelles Niveau: <strong id="dashLevel">A1</strong></p>
+
+      <dl class="stats">
+        <div><dt>Ziel-Niveau</dt><dd><span id="statTarget"></span><small id="statTargetNote"></small></dd></div>
+        <div><dt>Nächste Stufe</dt><dd><span id="statNext"></span><small id="statNextNote"></small></dd></div>
+        <div><dt>Heute fällig</dt><dd><span id="statDue"></span><small id="statDueNote"></small></dd></div>
+        <div><dt>Sprachpaar</dt><dd><span id="statPair"></span><small id="statPairNote"></small></dd></div>
+      </dl>
+
+      <div class="cta">
+        <button class="btn btn-primary btn-lg" id="startSession" type="button">Heutige Spaced-Repetition-Session starten</button>
+        <p class="hint" id="sessionHint"></p>
+      </div>
+    </section>
+
+    <!-- 3. Lern-Session -->
+    <section class="view" id="view-study" hidden>
+      <h1 tabindex="-1" class="sr-only">Lern-Session</h1>
+
+      <div id="studyActive">
+        <div class="study-head">
+          <span id="studyPos"></span>
+          <span id="studyMastered" aria-live="polite"></span>
+        </div>
+        <div class="thin" role="progressbar" aria-label="Session-Fortschritt" aria-valuemin="0" aria-valuemax="100"><div class="fill" id="studyBar"></div></div>
+
+        <div class="scene">
+          <div class="card" id="card" role="button" tabindex="0" aria-pressed="false" aria-label="Karte umdrehen">
+            <div class="face front" id="faceFront">
+              <div class="face-meta"><span class="chip chip-dark" id="frontLevel"></span><span id="frontLang"></span></div>
+              <p class="sentence" id="frontSentence"></p>
+              <p class="face-note" id="frontNote" hidden></p>
+            </div>
+            <div class="face back" id="faceBack">
+              <div class="face-meta"><span id="backLang"></span></div>
+              <div>
+                <p class="answer" id="backLemma"></p>
+                <p class="sentence-sm" id="backSentence"></p>
+              </div>
+              <div>
+                <dl class="facts">
+                  <div><dt>Anchor-Wort</dt><dd id="factAnchor"></dd></div>
+                  <div><dt>Zielwort</dt><dd id="factTarget"></dd></div>
+                </dl>
+                <p class="face-note" id="backNote" hidden></p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="hint center">Klicke auf die Karte oder drücke die Leertaste, um die Übersetzung zu sehen. Mit 1, 2 und 3 bewertest du.</p>
+
+        <div class="rates">
+          <button class="rate rate-again" type="button" data-rate="again" disabled><span>Kannte ich nicht</span><small></small></button>
+          <button class="rate rate-hard" type="button" data-rate="hard" disabled><span>Schwer</span><small></small></button>
+          <button class="rate rate-easy" type="button" data-rate="easy" disabled><span>Einfach</span><small></small></button>
+        </div>
+      </div>
+
+      <div id="studyDone" hidden>
+        <h2 id="doneTitle"></h2>
+        <p class="lead" id="doneText"></p>
+        <dl class="stats" id="doneStats"></dl>
+        <div class="actions">
+          <a class="btn btn-primary" href="#dashboard">Zum Dashboard</a>
+          <a class="btn btn-ghost" href="#library">Zur Wort-Matrix</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Wort-Matrix -->
+    <section class="view" id="view-library" hidden>
+      <h1 tabindex="-1">Wort-Matrix</h1>
+      <p class="lead">Alle Konzepte mit Niveau und Lernstatus. Die Suche prüft Anchor-Wort, Zielwort und Übersetzung.</p>
+
+      <div class="filters">
+        <div class="field grow">
+          <label for="libSearch">Suche</label>
+          <input id="libSearch" type="search" placeholder="Wort eingeben" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="libLevel">Niveau</label>
+          <select id="libLevel">
+            <option value="all">Alle Niveaus</option>
+            <option value="A1">A1</option><option value="A2">A2</option>
+            <option value="B1">B1</option><option value="B2">B2</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="libStatus">Lernstatus</label>
+          <select id="libStatus">
+            <option value="all">Alle</option>
+            <option value="neu">Neu</option>
+            <option value="lernend">Lernend</option>
+            <option value="gemeistert">Gemeistert</option>
+          </select>
+        </div>
+      </div>
+
+      <p class="hint" id="libCount" aria-live="polite"></p>
+
+      <ul class="matrix" id="libList">
+        <li class="row head" aria-hidden="true">
+          <span>Anchor-Wort</span><span id="libHeadTarget">Zielsprache</span><span id="libHeadNative">Muttersprache</span><span>Niveau</span><span>Status</span>
+        </li>
+      </ul>
+    </section>
+
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
